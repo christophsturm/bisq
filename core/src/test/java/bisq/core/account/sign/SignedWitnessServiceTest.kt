@@ -72,6 +72,13 @@ class SignedWitnessServiceTest {
                                 tradeAmount: Long
     ) = SignedWitnessData(witnessHash, witnessOwnerPubKey, date, tradeAmount, signerKey.signMessage(Utilities.encodeToHex(witnessHash)).toByteArray(Charsets.UTF_8), signerKey.pubKey)
 
+    fun nonArbitratorSignedWitness(signerKey: ECKey,
+                                   witnessHash: ByteArray,
+                                   witnessOwnerPubKey: ByteArray,
+                                   date: Long,
+                                   tradeAmount: Long
+    ) = SignedWitnessData(witnessHash, witnessOwnerPubKey, date, tradeAmount, signerKey.signMessage(Utilities.encodeToHex(witnessHash)).toByteArray(Charsets.UTF_8), signerKey.pubKey)
+
     // this is only necessary if SignedWitness can't be converted to kotlin. if SignedWitness was a kotlin data class, we could just use the signed witness class instead
     data class SignedWitnessData(
             val witnessHash: ByteArray,
@@ -81,6 +88,7 @@ class SignedWitnessServiceTest {
             val signature: ByteArray,
             val signerPubKey: ByteArray
     )
+
     val arbitrator1Key = ECKey()
     val peer1KeyPair = Sig.generateKeyPair()
     val peer2KeyPair = Sig.generateKeyPair()
@@ -144,7 +152,7 @@ class SignedWitnessServiceTest {
 
     @Test
     fun testIsValidAccountAgeWitnessPeerSignatureProblem() {
-        val sw1 = signedWitness(account1.copy(signature = byteArrayOf(1, 2, 3)))
+        val sw1 = signedWitness(account1)
         val sw2 = SignedWitness(false, account2DataHash, signature2, signer2PubKey, witnessOwner2PubKey, date2, tradeAmount2)
         val sw3 = SignedWitness(false, account3DataHash, signature3, signer3PubKey, witnessOwner3PubKey, date3, tradeAmount3)
 
