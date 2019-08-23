@@ -64,25 +64,28 @@ class SignedWitnessServiceTest {
     private var tradeAmount2: Long = 0
     private var tradeAmount3: Long = 0
 
+
+    fun arbitratorSignedWitness(signerKey: ECKey,
+                                witnessHash: ByteArray,
+                                witnessOwnerPubKey: ByteArray,
+                                date: Long,
+                                tradeAmount: Long
+    ) = SignedWitnessData(witnessHash, witnessOwnerPubKey, date, tradeAmount, signerKey.signMessage(Utilities.encodeToHex(witnessHash)).toByteArray(Charsets.UTF_8), signerKey.pubKey)
+
     // this is only necessary if SignedWitness can't be converted to kotlin. if SignedWitness was a kotlin data class, we could just use the signed witness class instead
     data class SignedWitnessData(
-            val signerKey: ECKey,
             val witnessHash: ByteArray,
             val witnessOwnerPubKey: ByteArray,
             val date: Long,
             val tradeAmount: Long,
-            val signature: ByteArray = signerKey.signMessage(Utilities.encodeToHex(witnessHash)).toByteArray(Charsets.UTF_8)
-    ) {
-
-        val signerPubKey = signerKey.pubKey
-
-    }
-
+            val signature: ByteArray,
+            val signerPubKey: ByteArray
+    )
     val arbitrator1Key = ECKey()
     val peer1KeyPair = Sig.generateKeyPair()
     val peer2KeyPair = Sig.generateKeyPair()
     val peer3KeyPair = Sig.generateKeyPair()
-    val account1 = SignedWitnessData(ECKey(), org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(1)),
+    val account1 = arbitratorSignedWitness(ECKey(), org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(1)),
             Sig.getPublicKeyBytes(peer1KeyPair.public), getTodayMinusNDays(95), 1000)
 
     @Before
