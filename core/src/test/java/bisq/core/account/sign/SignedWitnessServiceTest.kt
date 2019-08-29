@@ -72,12 +72,12 @@ class SignedWitnessServiceTest {
                                 tradeAmount: Long
     ) = SignedWitnessData(witnessHash, witnessOwnerPubKey, date, tradeAmount, signerKey.signMessage(Utilities.encodeToHex(witnessHash)).toByteArray(Charsets.UTF_8), signerKey.pubKey)
 
-    fun nonArbitratorSignedWitness(signerKey: ECKey,
-                                   witnessHash: ByteArray,
-                                   witnessOwnerPubKey: ByteArray,
-                                   date: Long,
-                                   tradeAmount: Long
-    ) = SignedWitnessData(witnessHash, witnessOwnerPubKey, date, tradeAmount, signerKey.signMessage(Utilities.encodeToHex(witnessHash)).toByteArray(Charsets.UTF_8), signerKey.pubKey)
+    fun peerSignedWitness(signerKey: KeyPair,
+                          witnessHash: ByteArray,
+                          witnessOwnerPubKey: ByteArray,
+                          date: Long,
+                          tradeAmount: Long
+    ) = SignedWitnessData(witnessHash, witnessOwnerPubKey, date, tradeAmount, Sig.sign(signerKey.private, Utilities.encodeToHex(witnessHash).toByteArray(Charsets.UTF_8)), Sig.getPublicKeyBytes(signerKey.public))
 
     // this is only necessary if SignedWitness can't be converted to kotlin. if SignedWitness was a kotlin data class, we could just use the signed witness class instead
     data class SignedWitnessData(
@@ -95,6 +95,10 @@ class SignedWitnessServiceTest {
     val peer3KeyPair = Sig.generateKeyPair()
     val account1 = arbitratorSignedWitness(ECKey(), org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(1)),
             Sig.getPublicKeyBytes(peer1KeyPair.public), getTodayMinusNDays(95), 1000)
+    val account2 = peerSignedWitness(peer1KeyPair, org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(2)),
+            Sig.getPublicKeyBytes(peer2KeyPair.public), getTodayMinusNDays(64), 1001)
+    val account3 = peerSignedWitness(peer2KeyPair, org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(3)),
+            Sig.getPublicKeyBytes(peer3KeyPair.public), getTodayMinusNDays(33), 1001)
 
     @Before
     fun setup() {
@@ -122,9 +126,9 @@ class SignedWitnessServiceTest {
 
     @Test
     fun testIsValidAccountAgeWitnessOk() {
-        val sw1 = signedWitness(this.account1)
-        val sw2 = SignedWitness(false, account2DataHash, signature2, signer2PubKey, witnessOwner2PubKey, date2, tradeAmount2)
-        val sw3 = SignedWitness(false, account3DataHash, signature3, signer3PubKey, witnessOwner3PubKey, date3, tradeAmount3)
+        val sw1 = signedWitness(account1, true)
+        val sw2 = signedWitness(account2, false)
+        val sw3 = signedWitness(account3, false)
 
         signedWitnessService.addToMap(sw1)
         signedWitnessService.addToMap(sw2)
@@ -137,9 +141,9 @@ class SignedWitnessServiceTest {
 
     @Test
     fun testIsValidAccountAgeWitnessArbitratorSignatureProblem() {
-        val sw1 = signedWitness(account1.copy(signature = byteArrayOf(1, 2, 3)))
-        val sw2 = SignedWitness(false, account3DataHash, signature2, signer2PubKey, witnessOwner2PubKey, date2, tradeAmount2)
-        val sw3 = SignedWitness(false, account3DataHash, signature3, signer3PubKey, witnessOwner3PubKey, date3, tradeAmount3)
+        val sw1 = signedWitness(account1.copy(signature = byteArrayOf(1, 2, 3)), true)
+        val sw2 = signedWitness(account2, false)
+        val sw3 = signedWitness(account3, false)
 
         signedWitnessService.addToMap(sw1)
         signedWitnessService.addToMap(sw2)
@@ -152,9 +156,9 @@ class SignedWitnessServiceTest {
 
     @Test
     fun testIsValidAccountAgeWitnessPeerSignatureProblem() {
-        val sw1 = signedWitness(account1)
-        val sw2 = SignedWitness(false, account2DataHash, signature2, signer2PubKey, witnessOwner2PubKey, date2, tradeAmount2)
-        val sw3 = SignedWitness(false, account3DataHash, signature3, signer3PubKey, witnessOwner3PubKey, date3, tradeAmount3)
+        val sw1 = signedWitness(account1, true)
+        val sw2 = signedWitness(account2.copy(signature = byteArrayOf(1, 2, 3)), false)
+        val sw3 = signedWitness(account3, false)
 
         signedWitnessService.addToMap(sw1)
         signedWitnessService.addToMap(sw2)
@@ -167,11 +171,9 @@ class SignedWitnessServiceTest {
 
     @Test
     fun testIsValidAccountAgeWitnessDateTooSoonProblem() {
-        date3 = getTodayMinusNDays(63)
-
-        val sw1 = signedWitness(account1)
-        val sw2 = SignedWitness(false, account2DataHash, signature2, signer2PubKey, witnessOwner2PubKey, date2, tradeAmount2)
-        val sw3 = SignedWitness(false, account3DataHash, signature3, signer3PubKey, witnessOwner3PubKey, date3, tradeAmount3)
+        val sw1 = signedWitness(account1, true)
+        val sw2 = signedWitness(account2, false)
+        val sw3 = signedWitness(account2.copy(date = getTodayMinusNDays(63)), false)
 
         signedWitnessService.addToMap(sw1)
         signedWitnessService.addToMap(sw2)
@@ -184,11 +186,10 @@ class SignedWitnessServiceTest {
 
     @Test
     fun testIsValidAccountAgeWitnessDateTooLateProblem() {
-        date3 = getTodayMinusNDays(3)
 
-        val sw1 = signedWitness(account1)
-        val sw2 = SignedWitness(false, account2DataHash, signature2, signer2PubKey, witnessOwner2PubKey, date2, tradeAmount2)
-        val sw3 = SignedWitness(false, account3DataHash, signature3, signer3PubKey, witnessOwner3PubKey, date3, tradeAmount3)
+        val sw1 = signedWitness(account1, true)
+        val sw2 = signedWitness(account2, false)
+        val sw3 = signedWitness(account2.copy(date = getTodayMinusNDays(3)), false)
 
         signedWitnessService.addToMap(sw1)
         signedWitnessService.addToMap(sw2)
@@ -199,8 +200,8 @@ class SignedWitnessServiceTest {
         assertFalse(signedWitnessService.isValidAccountAgeWitness(aew3))
     }
 
-    private fun signedWitness(account1: SignedWitnessData) =
-            SignedWitness(true, account1.witnessHash, account1.signature, account1.signerPubKey, account1.witnessOwnerPubKey, account1.date, account1.tradeAmount)
+    private fun signedWitness(account1: SignedWitnessData, signedByArbitrator: Boolean) =
+            SignedWitness(signedByArbitrator, account1.witnessHash, account1.signature, account1.signerPubKey, account1.witnessOwnerPubKey, account1.date, account1.tradeAmount)
 
 
     @Test
