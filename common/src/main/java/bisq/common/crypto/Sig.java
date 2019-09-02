@@ -38,6 +38,8 @@ import java.security.spec.X509EncodedKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+
 /**
  * StorageSignatureKeyPair/STORAGE_SIGN_KEY_ALGO: That is used for signing the data to be stored to the P2P network (by flooding).
  * The algo is selected because it originated from the TomP2P version which used DSA.
@@ -56,6 +58,7 @@ public class Sig {
     /**
      * @return keyPair
      */
+    @Nonnull
     public static KeyPair generateKeyPair() {
         long ts = System.currentTimeMillis();
         try {
@@ -72,11 +75,6 @@ public class Sig {
     }
 
 
-    /**
-     * @param privateKey
-     * @param data
-     * @return
-     */
     public static byte[] sign(PrivateKey privateKey, byte[] data) throws CryptoException {
         try {
             Signature sig = Signature.getInstance(ALGO);
@@ -89,7 +87,6 @@ public class Sig {
     }
 
     /**
-     * @param privateKey
      * @param message    UTF-8 encoded message to sign
      * @return Base64 encoded signature
      */
@@ -98,12 +95,6 @@ public class Sig {
         return Base64.toBase64String(sigAsBytes);
     }
 
-    /**
-     * @param publicKey
-     * @param data
-     * @param signature
-     * @return
-     */
     public static boolean verify(PublicKey publicKey, byte[] data, byte[] signature) throws CryptoException {
         try {
             Signature sig = Signature.getInstance(ALGO);
@@ -116,19 +107,14 @@ public class Sig {
     }
 
     /**
-     * @param publicKey
      * @param message   UTF-8 encoded message
      * @param signature Base64 encoded signature
-     * @return
+     * @return true if the signature was verified.
      */
     public static boolean verify(PublicKey publicKey, String message, String signature) throws CryptoException {
         return verify(publicKey, message.getBytes(Charsets.UTF_8), Base64.decode(signature));
     }
 
-    /**
-     * @param sigPublicKeyBytes
-     * @return
-     */
     public static PublicKey getPublicKeyFromBytes(byte[] sigPublicKeyBytes) {
         try {
             return KeyFactory.getInstance(Sig.KEY_ALGO).generatePublic(new X509EncodedKeySpec(sigPublicKeyBytes));
