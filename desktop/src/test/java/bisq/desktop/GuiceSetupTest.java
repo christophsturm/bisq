@@ -36,6 +36,7 @@ import bisq.core.notifications.alerts.MyOfferTakenEvents;
 import bisq.core.notifications.alerts.TradeEvents;
 import bisq.core.notifications.alerts.market.MarketAlerts;
 import bisq.core.notifications.alerts.price.PriceAlert;
+import bisq.core.payment.ChargeBackRisk;
 import bisq.core.payment.TradeLimits;
 import bisq.core.proto.network.CoreNetworkProtoResolver;
 import bisq.core.proto.persistable.CorePersistenceProtoResolver;
@@ -135,6 +136,7 @@ public class GuiceSetupTest {
         assertSingleton(TradeEvents.class);
         assertSingleton(PriceAlert.class);
         assertSingleton(MarketAlerts.class);
+        assertSingleton(ChargeBackRisk.class);
 
         assertSingleton(SignedWitnessStorageService.class);
         assertSingleton(SignedWitnessService.class);

@@ -40,7 +40,7 @@ import java.util.*
 class SignedWitnessServiceTest {
     val appendOnlyDataStoreService = mock<AppendOnlyDataStoreService>()
     val arbitratorManager = mock<ArbitratorManager>()
-    val signedWitnessService = SignedWitnessService(mock(), mock(), mock(), arbitratorManager, mock(), appendOnlyDataStoreService)
+    val signedWitnessService = SignedWitnessService(mock(), mock(), mock(), arbitratorManager, mock(), appendOnlyDataStoreService, mock(), mock())
     private var aew1: AccountAgeWitness? = null
     private var aew2: AccountAgeWitness? = null
     private var aew3: AccountAgeWitness? = null

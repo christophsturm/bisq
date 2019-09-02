@@ -158,7 +158,6 @@ configure(project(':assets')) {
         }
         compile "com.google.guava:guava:$guavaVersion"
         compile "org.slf4j:slf4j-api:$slf4jVersion"
-        compile "commons-codec:commons-codec:$codecVersion"
         compile "org.apache.commons:commons-lang3:$langVersion"
         compile "org.bouncycastle:bcpg-jdk15on:$bcVersion"
     }
@@ -297,9 +296,7 @@ configure(project(':desktop')) {
     sourceSets.main.resources.srcDirs += ['src/main/java'] // to copy fxml and css files
 
     dependencies {
-        compile project(':p2p')
         compile project(':core')
-        compile project(':common')
         compile "org.controlsfx:controlsfx:$controlsfxVersion"
         compile "org.reactfx:reactfx:$reactfxVersion"
         compile "net.glxn:qrgen:$qrgenVersion"
