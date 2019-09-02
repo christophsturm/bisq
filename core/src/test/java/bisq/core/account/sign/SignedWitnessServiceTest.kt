@@ -32,15 +32,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.mock
 import java.security.KeyPair
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
 class SignedWitnessServiceTest {
-    val appendOnlyDataStoreService = mock(AppendOnlyDataStoreService::class.java)
-    val arbitratorManager = mock(ArbitratorManager::class.java)
+    val appendOnlyDataStoreService = mock<AppendOnlyDataStoreService>()
+    val arbitratorManager = mock<ArbitratorManager>()
     val signedWitnessService = SignedWitnessService(mock(), mock(), mock(), arbitratorManager, mock(), appendOnlyDataStoreService)
     private var aew1: AccountAgeWitness? = null
     private var aew2: AccountAgeWitness? = null
@@ -74,12 +73,12 @@ class SignedWitnessServiceTest {
     val peer1KeyPair = Sig.generateKeyPair()
     val peer2KeyPair = Sig.generateKeyPair()
     val peer3KeyPair = Sig.generateKeyPair()
-    val account1 = arbitratorSignedWitness(ECKey(), org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(1)),
-            Sig.getPublicKeyBytes(peer1KeyPair.public), getTodayMinusNDays(95), 1000)
-    val account2 = peerSignedWitness(peer1KeyPair, org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(2)),
-            Sig.getPublicKeyBytes(peer2KeyPair.public), getTodayMinusNDays(64), 1001)
-    val account3 = peerSignedWitness(peer2KeyPair, org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(3)),
-            Sig.getPublicKeyBytes(peer3KeyPair.public), getTodayMinusNDays(33), 1001)
+    val account1 = arbitratorSignedWitness(signerKey = ECKey(), witnessHash = org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(1)),
+            witnessOwnerPubKey = Sig.getPublicKeyBytes(peer1KeyPair.public), date = getTodayMinusNDays(95), tradeAmount = 1000)
+    val account2 = peerSignedWitness(signerKey = peer1KeyPair, witnessHash = org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(2)),
+            witnessOwnerPubKey = Sig.getPublicKeyBytes(peer2KeyPair.public), date = getTodayMinusNDays(64), tradeAmount = 1001)
+    val account3 = peerSignedWitness(signerKey = peer2KeyPair, witnessHash = org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(3)),
+            witnessOwnerPubKey = Sig.getPublicKeyBytes(peer3KeyPair.public), date = getTodayMinusNDays(33), tradeAmount = 1001)
 
     @Before
     fun setup() {
@@ -178,11 +177,7 @@ class SignedWitnessServiceTest {
         val account1DataHash = org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(1))
         val account2DataHash = org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(2))
         val account3DataHash = org.bitcoinj.core.Utils.sha256hash160(byteArrayOf(3))
-        val account1CreationTime = getTodayMinusNDays(96)
-        val account2CreationTime = getTodayMinusNDays(66)
         val account3CreationTime = getTodayMinusNDays(36)
-        val aew1 = AccountAgeWitness(account1DataHash, account1CreationTime)
-        val aew2 = AccountAgeWitness(account2DataHash, account2CreationTime)
         val aew3 = AccountAgeWitness(account3DataHash, account3CreationTime)
 
         val peer1KeyPair = Sig.generateKeyPair()
